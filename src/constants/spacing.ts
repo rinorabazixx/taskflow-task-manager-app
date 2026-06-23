@@ -51,12 +51,12 @@ export const shadow = {
 };
 
 export const font = {
-  regular: Platform.select({ ios: "Poppins-Regular", android: "Poppins-Regular", default: "System" }),
-  medium: Platform.select({ ios: "Poppins-Medium", android: "Poppins-Medium", default: "System" }),
-  semiBold: Platform.select({ ios: "Poppins-SemiBold", android: "Poppins-SemiBold", default: "System" }),
-  bold: Platform.select({ ios: "Poppins-Bold", android: "Poppins-Bold", default: "System" }),
-  interRegular: Platform.select({ ios: "Inter-Regular", android: "Inter-Regular", default: "System" }),
-  interMedium: Platform.select({ ios: "Inter-Medium", android: "Inter-Medium", default: "System" }),
+  regular: "Poppins-Regular",
+  medium: "Poppins-Medium",
+  semiBold: "Poppins-SemiBold",
+  bold: "Poppins-Bold",
+  interRegular: "Inter-Regular",
+  interMedium: "Inter-Medium",
 };
 
 export const typography = {
@@ -69,3 +69,4 @@ export const typography = {
   label: { fontSize: 12, lineHeight: 16, fontFamily: font.interMedium, letterSpacing: 0.3 } as TextStyle,
   caption: { fontSize: 11, lineHeight: 14, fontFamily: font.interRegular } as TextStyle,
 };
+

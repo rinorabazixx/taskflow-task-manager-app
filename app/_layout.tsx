@@ -1,21 +1,53 @@
+import "@/utils/devWarnings";
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+} from "@expo-google-fonts/inter";
+import {
+  Poppins_400Regular,
+  Poppins_500Medium,
+  Poppins_600SemiBold,
+  Poppins_700Bold,
+} from "@expo-google-fonts/poppins";
+import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
-import { useColorScheme, LogBox } from "react-native";
+import * as SplashScreen from "expo-splash-screen";
+import { useEffect } from "react";
+import { LogBox, useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { TaskProvider } from "@/hooks/useTasks";
 import { darkColors, lightColors } from "@/constants/colors";
+import { TaskProvider } from "@/hooks/useTasks";
+
+void SplashScreen.preventAutoHideAsync();
 
 LogBox.ignoreLogs([
-  "props.pointerEvents is deprecated",
-  "Animated: `useNativeDriver` is not supported",
-  "[Reanimated] Reduced motion setting is enabled"
+  "props.pointerEvents is deprecated"
 ]);
 
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts({
+    "Inter-Regular": Inter_400Regular,
+    "Inter-Medium": Inter_500Medium,
+    "Poppins-Regular": Poppins_400Regular,
+    "Poppins-Medium": Poppins_500Medium,
+    "Poppins-SemiBold": Poppins_600SemiBold,
+    "Poppins-Bold": Poppins_700Bold,
+  });
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const colors = isDark ? darkColors : lightColors;
+
+  useEffect(() => {
+    if (fontsLoaded || fontError) {
+      void SplashScreen.hideAsync();
+    }
+  }, [fontError, fontsLoaded]);
+
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
 
   const theme = {
     ...(isDark ? MD3DarkTheme : MD3LightTheme),
@@ -57,3 +89,4 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+

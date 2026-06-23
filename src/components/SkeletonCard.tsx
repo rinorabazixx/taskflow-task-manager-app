@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import { DimensionValue, StyleSheet, View } from "react-native";
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
   withTiming,
-  Easing,
 } from "react-native-reanimated";
 import { AppColors } from "@/constants/colors";
 import { radius, spacing } from "@/constants/spacing";
@@ -14,7 +14,16 @@ type SkeletonCardProps = {
   colors: AppColors;
 };
 
-function SkeletonLine({ width, height = 12, colors }: { width: DimensionValue; height?: number; colors: AppColors }) {
+// Exported so InspirationCard can reuse it for its loading skeleton
+export function SkeletonLine({
+  width,
+  height = 12,
+  colors,
+}: {
+  width: DimensionValue;
+  height?: number;
+  colors: AppColors;
+}) {
   const opacity = useSharedValue(1);
 
   useEffect(() => {
@@ -28,16 +37,27 @@ function SkeletonLine({ width, height = 12, colors }: { width: DimensionValue; h
   const animatedStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
 
   return (
-    // Wrap in plain View so the `width: string | number` never touches Animated.View's stricter types
     <Animated.View style={animatedStyle}>
-      <View style={{ width, height, borderRadius: radius.sm, backgroundColor: colors.skeleton }} />
+      <View
+        style={{
+          width,
+          height,
+          borderRadius: radius.sm,
+          backgroundColor: colors.skeleton,
+        }}
+      />
     </Animated.View>
   );
 }
 
 export function SkeletonCard({ colors }: SkeletonCardProps) {
   return (
-    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: colors.surface, borderColor: colors.border },
+      ]}
+    >
       <View style={[styles.circle, { backgroundColor: colors.skeleton }]} />
       <View style={styles.content}>
         <SkeletonLine width="70%" height={14} colors={colors} />

@@ -14,19 +14,12 @@ test.describe("TaskFlow rendered verification", () => {
     await waitForApp(page);
 
     await expect(page.getByLabel("Search tasks")).toBeVisible();
-    await expect(page.getByLabel("Show all tasks")).toBeVisible();
+    await expect(page.getByLabel("All tasks")).toBeVisible();
     await expect(page.getByLabel("Add task")).toBeVisible();
 
-    const responsePromise = page.waitForResponse(
-      (res) => res.url().includes("https://dummyjson.com/todos") && res.ok(),
-      { timeout: 30_000 }
-    );
-    await page.getByLabel("Refresh daily inspiration").click();
-    const response = await responsePromise;
-    expect(response.status()).toBe(200);
-
     const inspirationCard = page.getByTestId("daily-inspiration-card");
-    await expect(inspirationCard.getByText(/Completed idea|Open idea/)).toBeVisible({ timeout: 30_000 });
+    await expect(inspirationCard.getByText(/Next quote in:/)).toBeVisible();
+    await expect(page.getByLabel("Refresh daily inspiration")).toHaveCount(0);
 
     await page.screenshot({
       path: `${screenshots}/${testInfo.project.name}-task-list.png`,
@@ -84,3 +77,4 @@ test.describe("TaskFlow rendered verification", () => {
     expect(seriousViolations).toEqual([]);
   });
 });
+

@@ -1,7 +1,13 @@
 import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, useColorScheme, View } from "react-native";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  useColorScheme,
+  View,
+} from "react-native";
 import { Button, Dialog, Divider, Portal, Text } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Animated, {
@@ -10,7 +16,13 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { AppButton } from "@/components/AppButton";
-import { darkColors, lightColors, darkPriorityColors, priorityColors } from "@/constants/colors";
+import { BackgroundGradient } from "@/components/BackgroundGradient";
+import {
+  darkColors,
+  darkPriorityColors,
+  lightColors,
+  priorityColors,
+} from "@/constants/colors";
 import { radius, shadow, spacing, typography } from "@/constants/spacing";
 import { useTasks } from "@/hooks/useTasks";
 import { CATEGORY_EMOJIS, CATEGORY_LABELS } from "@/types/task";
@@ -39,17 +51,28 @@ export function TaskDetailScreen() {
   const task = tasks.find((item) => item.id === id);
 
   const toggleScale = useSharedValue(1);
-  const toggleStyle = useAnimatedStyle(() => ({ transform: [{ scale: toggleScale.value }] }));
+  const toggleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: toggleScale.value }],
+  }));
 
+  // Task not found — still wrapped in BackgroundGradient for visual consistency
   if (!task) {
     return (
-      <View style={[styles.missing, { backgroundColor: colors.background }]}>
-        <Text style={[styles.missingEmoji]}>🔍</Text>
-        <Text style={[typography.h3, { color: colors.text, textAlign: "center" }]}>Task not found</Text>
-        <Button onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back">
-          Go Back
-        </Button>
-      </View>
+      <BackgroundGradient colors={colors}>
+        <View style={styles.missing}>
+          <Text style={styles.missingEmoji}>🔍</Text>
+          <Text style={[typography.h3, { color: colors.text, textAlign: "center" }]}>
+            Task not found
+          </Text>
+          <Button
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
+            Go Back
+          </Button>
+        </View>
+      </BackgroundGradient>
     );
   }
 
@@ -71,130 +94,258 @@ export function TaskDetailScreen() {
   };
 
   return (
-    <ScrollView
-      style={{ backgroundColor: colors.background }}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Hero card */}
-      <View style={[styles.heroCard, { backgroundColor: colors.surface, borderColor: colors.border }, shadow.sm]}>
-        {/* Priority bar */}
-        <View style={[styles.heroPriorityBar, { backgroundColor: PRIORITY_BARS[task.priority] }]} />
-        <View style={styles.heroInner}>
-          <View style={[styles.priorityBadge, { backgroundColor: pc[task.priority].bg, borderColor: pc[task.priority].border }]}>
-            <Text style={[typography.label, { color: pc[task.priority].text }]}>
-              {PRIORITY_LABELS[task.priority]}
+    <BackgroundGradient colors={colors}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Hero card */}
+        <View
+          style={[
+            styles.heroCard,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+            shadow.sm,
+          ]}
+        >
+          {/* Coloured priority bar at top of card */}
+          <View
+            style={[
+              styles.heroPriorityBar,
+              { backgroundColor: PRIORITY_BARS[task.priority] },
+            ]}
+          />
+          <View style={styles.heroInner}>
+            <View
+              style={[
+                styles.priorityBadge,
+                {
+                  backgroundColor: pc[task.priority].bg,
+                  borderColor: pc[task.priority].border,
+                },
+              ]}
+            >
+              <Text style={[typography.label, { color: pc[task.priority].text }]}>
+                {PRIORITY_LABELS[task.priority]}
+              </Text>
+            </View>
+            <Text
+              style={[
+                styles.heroTitle,
+                {
+                  color: task.completed ? colors.secondary : colors.text,
+                  textDecorationLine: task.completed ? "line-through" : "none",
+                },
+              ]}
+            >
+              {task.title}
+            </Text>
+            {task.description ? (
+              <Text style={[styles.heroDesc, { color: colors.secondary }]}>
+                {task.description}
+              </Text>
+            ) : (
+              <Text
+                style={[
+                  styles.heroDesc,
+                  { color: colors.secondary, fontStyle: "italic" },
+                ]}
+              >
+                No description
+              </Text>
+            )}
+          </View>
+        </View>
+
+        {/* Meta info card */}
+        <View
+          style={[
+            styles.metaCard,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+            shadow.sm,
+          ]}
+        >
+          {/* Status row */}
+          <View style={styles.metaRow}>
+            <MaterialCommunityIcons
+              name="checkbox-marked-circle-outline"
+              size={18}
+              color={colors.secondary}
+            />
+            <Text style={[styles.metaLabel, { color: colors.secondary }]}>
+              Status
+            </Text>
+            <Animated.View
+              style={[
+                styles.statusPill,
+                {
+                  backgroundColor: task.completed
+                    ? colors.success + "20"
+                    : colors.primary + "15",
+                },
+                toggleStyle,
+              ]}
+            >
+              <View
+                style={[
+                  styles.statusDot,
+                  {
+                    backgroundColor: task.completed
+                      ? colors.success
+                      : colors.primary,
+                  },
+                ]}
+              />
+              <Text
+                style={[
+                  styles.statusText,
+                  {
+                    color: task.completed ? colors.success : colors.primary,
+                  },
+                ]}
+              >
+                {task.completed ? "Completed" : "Active"}
+              </Text>
+            </Animated.View>
+          </View>
+
+          <Divider style={{ backgroundColor: colors.border }} />
+
+          {/* Due date row */}
+          {task.dueDate && relative && (
+            <>
+              <View style={styles.metaRow}>
+                <MaterialCommunityIcons
+                  name="calendar-outline"
+                  size={18}
+                  color={relative.isOverdue ? colors.danger : colors.secondary}
+                />
+                <Text style={[styles.metaLabel, { color: colors.secondary }]}>
+                  Due Date
+                </Text>
+                <Text
+                  style={[
+                    styles.metaValue,
+                    {
+                      color: relative.isOverdue ? colors.danger : colors.text,
+                    },
+                  ]}
+                >
+                  {relative.label}
+                </Text>
+              </View>
+              <Divider style={{ backgroundColor: colors.border }} />
+            </>
+          )}
+
+          {/* Category row */}
+          {task.category && (
+            <>
+              <View style={styles.metaRow}>
+                <MaterialCommunityIcons
+                  name="tag-outline"
+                  size={18}
+                  color={colors.secondary}
+                />
+                <Text style={[styles.metaLabel, { color: colors.secondary }]}>
+                  Category
+                </Text>
+                <Text style={[styles.metaValue, { color: colors.text }]}>
+                  {CATEGORY_EMOJIS[task.category]}{" "}
+                  {CATEGORY_LABELS[task.category]}
+                </Text>
+              </View>
+              <Divider style={{ backgroundColor: colors.border }} />
+            </>
+          )}
+
+          {/* Created row */}
+          <View style={styles.metaRow}>
+            <MaterialCommunityIcons
+              name="clock-outline"
+              size={18}
+              color={colors.secondary}
+            />
+            <Text style={[styles.metaLabel, { color: colors.secondary }]}>
+              Created
+            </Text>
+            <Text style={[styles.metaValue, { color: colors.text }]}>
+              {formatDate(task.createdAt)}
             </Text>
           </View>
-          <Text style={[styles.heroTitle, { color: task.completed ? colors.secondary : colors.text,
-            textDecorationLine: task.completed ? "line-through" : "none" }]}>
-            {task.title}
-          </Text>
-          {task.description ? (
-            <Text style={[styles.heroDesc, { color: colors.secondary }]}>{task.description}</Text>
-          ) : (
-            <Text style={[styles.heroDesc, { color: colors.secondary, fontStyle: "italic" }]}>No description</Text>
-          )}
         </View>
-      </View>
 
-      {/* Meta info */}
-      <View style={[styles.metaCard, { backgroundColor: colors.surface, borderColor: colors.border }, shadow.sm]}>
-        {/* Status row */}
-        <View style={styles.metaRow}>
-          <MaterialCommunityIcons name="checkbox-marked-circle-outline" size={18} color={colors.secondary} />
-          <Text style={[styles.metaLabel, { color: colors.secondary }]}>Status</Text>
-          <Animated.View style={[styles.statusPill, { backgroundColor: task.completed ? colors.success + "20" : colors.primary + "15" }, toggleStyle]}>
-            <View style={[styles.statusDot, { backgroundColor: task.completed ? colors.success : colors.primary }]} />
-            <Text style={[styles.statusText, { color: task.completed ? colors.success : colors.primary }]}>
-              {task.completed ? "Completed" : "Active"}
+        {/* Action buttons */}
+        <View style={styles.actions}>
+          <AppButton
+            onPress={handleToggle}
+            accessibilityLabel={
+              task.completed ? "Mark task active" : "Mark task complete"
+            }
+          >
+            {task.completed ? "Mark as Active" : "Mark as Complete ✓"}
+          </AppButton>
+
+          <Pressable
+            onPress={() => router.push(`/edit/${task.id}`)}
+            accessibilityRole="button"
+            accessibilityLabel="Edit task"
+            style={[
+              styles.editButton,
+              {
+                borderColor: colors.primary,
+                backgroundColor: colors.overlay,
+              },
+            ]}
+          >
+            <MaterialCommunityIcons
+              name="pencil-outline"
+              size={18}
+              color={colors.primary}
+            />
+            <Text style={[styles.editButtonText, { color: colors.primary }]}>
+              Edit Task
             </Text>
-          </Animated.View>
+          </Pressable>
+
+          <AppButton
+            variant="danger"
+            onPress={() => setConfirmVisible(true)}
+            accessibilityLabel="Delete task"
+          >
+            Delete Task
+          </AppButton>
         </View>
 
-        <Divider style={{ backgroundColor: colors.border }} />
-
-        {/* Due date row */}
-        {task.dueDate && relative && (
-          <>
-            <View style={styles.metaRow}>
-              <MaterialCommunityIcons
-                name="calendar-outline"
-                size={18}
-                color={relative.isOverdue ? colors.danger : colors.secondary}
-              />
-              <Text style={[styles.metaLabel, { color: colors.secondary }]}>Due Date</Text>
-              <Text style={[styles.metaValue, { color: relative.isOverdue ? colors.danger : colors.text }]}>
-                {relative.label}
+        {/* Delete confirmation dialog */}
+        <Portal>
+          <Dialog
+            visible={confirmVisible}
+            onDismiss={() => setConfirmVisible(false)}
+            style={{ backgroundColor: colors.surface }}
+          >
+            <Dialog.Title style={{ color: colors.text }}>
+              Delete task?
+            </Dialog.Title>
+            <Dialog.Content>
+              <Text style={{ color: colors.secondary }}>
+                This cannot be undone.
               </Text>
-            </View>
-            <Divider style={{ backgroundColor: colors.border }} />
-          </>
-        )}
-
-        {/* Category row */}
-        {task.category && (
-          <>
-            <View style={styles.metaRow}>
-              <MaterialCommunityIcons name="tag-outline" size={18} color={colors.secondary} />
-              <Text style={[styles.metaLabel, { color: colors.secondary }]}>Category</Text>
-              <Text style={[styles.metaValue, { color: colors.text }]}>
-                {CATEGORY_EMOJIS[task.category]} {CATEGORY_LABELS[task.category]}
-              </Text>
-            </View>
-            <Divider style={{ backgroundColor: colors.border }} />
-          </>
-        )}
-
-        {/* Created row */}
-        <View style={styles.metaRow}>
-          <MaterialCommunityIcons name="clock-outline" size={18} color={colors.secondary} />
-          <Text style={[styles.metaLabel, { color: colors.secondary }]}>Created</Text>
-          <Text style={[styles.metaValue, { color: colors.text }]}>{formatDate(task.createdAt)}</Text>
-        </View>
-      </View>
-
-      {/* Actions */}
-      <View style={styles.actions}>
-        <AppButton onPress={handleToggle} accessibilityLabel={task.completed ? "Mark task active" : "Mark task complete"}>
-          {task.completed ? "Mark as Active" : "Mark as Complete ✓"}
-        </AppButton>
-        <Pressable
-          onPress={() => router.push(`/edit/${task.id}`)}
-          accessibilityRole="button"
-          accessibilityLabel="Edit task"
-          style={[styles.editButton, { borderColor: colors.primary, backgroundColor: colors.overlay }]}
-        >
-          <MaterialCommunityIcons name="pencil-outline" size={18} color={colors.primary} />
-          <Text style={[styles.editButtonText, { color: colors.primary }]}>Edit Task</Text>
-        </Pressable>
-        <AppButton
-          variant="danger"
-          onPress={() => setConfirmVisible(true)}
-          accessibilityLabel="Delete task"
-        >
-          Delete Task
-        </AppButton>
-      </View>
-
-      <Portal>
-        <Dialog visible={confirmVisible} onDismiss={() => setConfirmVisible(false)}
-          style={{ backgroundColor: colors.surface }}>
-          <Dialog.Title style={{ color: colors.text }}>Delete task?</Dialog.Title>
-          <Dialog.Content>
-            <Text style={{ color: colors.secondary }}>This cannot be undone.</Text>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setConfirmVisible(false)} textColor={colors.secondary}>
-              Cancel
-            </Button>
-            <Button onPress={handleDelete} textColor={colors.danger}>
-              Delete
-            </Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
-    </ScrollView>
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button
+                onPress={() => setConfirmVisible(false)}
+                textColor={colors.secondary}
+              >
+                Cancel
+              </Button>
+              <Button onPress={handleDelete} textColor={colors.danger}>
+                Delete
+              </Button>
+            </Dialog.Actions>
+          </Dialog>
+        </Portal>
+      </ScrollView>
+    </BackgroundGradient>
   );
 }
 
@@ -233,8 +384,8 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   heroInner: {
-    padding: spacing.md,
     gap: spacing.sm,
+    padding: spacing.md,
   },
   heroPriorityBar: {
     height: 5,
